@@ -1,0 +1,12 @@
+# One row: the oc_* tools that speak to the local OpenCLI daemon (default 127.0.0.1:19825).
+# Config lives here so `pnpm dsh plugin config` can tune it without touching the code.
+#   port          daemon RPC port; must match `opencli daemon status`
+#   defaultSession  session key for the persistent automation tab (one tab per session name)
+#   timeoutMs     per-expression budget, clamped to 2000-120000 by the plugin
+- insert:
+    - id: dsh-opencli
+      name: dsh-opencli
+      config:
+        port: 19825
+        defaultSession: dsh
+        timeoutMs: 30000

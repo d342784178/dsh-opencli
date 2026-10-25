@@ -1,0 +1,56 @@
+{
+  "name": "dsh-opencli",
+  "version": "0.1.0",
+  "description": "Low-latency OpenCLI browser tools for DSH: drives the local OpenCLI daemon directly instead of paying a CLI cold start on every command.",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test/schema.test.mjs"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json",
+    "./locale/*.json": "./locale/*.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md",
+    "LICENSE"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "icon": "./icon.svg",
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "opencli",
+    "cordis",
+    "cordis-plugin",
+    "browser-automation",
+    "cdp",
+    "agent-tools"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/d342784178/dsh-opencli.git"
+  },
+  "homepage": "https://github.com/d342784178/dsh-opencli#readme",
+  "bugs": {
+    "url": "https://github.com/d342784178/dsh-opencli/issues"
+  },
+  "author": "d342784178",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}

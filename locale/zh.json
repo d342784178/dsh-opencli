@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenCLI 直连",
+    "description": "通过本地 OpenCLI daemon 直连用户已登录的浏览器，单条表达式约 10 毫秒，省掉 1.4-1.8 秒的 CLI 冷启动"
+  }
+}

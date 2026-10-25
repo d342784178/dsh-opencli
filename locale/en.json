@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenCLI RPC",
+    "description": "Drives the user's logged-in browser through the local OpenCLI daemon in about 10 ms per expression, without the 1.4-1.8 s CLI cold start"
+  }
+}
