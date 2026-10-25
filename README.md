@@ -25,7 +25,13 @@ plugin_manager action=install_bundle target=dsh-opencli
 
 From a checkout instead: `plugin_manager action=install_bundle target=/absolute/path/to/dsh-opencli`.
 
-**B · With npm / pnpm** — a DSH profile is an ordinary package directory, so the plugin is an ordinary dependency:
+**B · With the `dsh` CLI** — the CLI's `plugin` command forwards the rest of the line to pnpm inside that profile directory:
+
+```bash
+npx @deepseek-ai/dsh plugin --profile web add dsh-opencli   # or install it once: npm i -g @deepseek-ai/dsh
+```
+
+**C · Manually, with npm / pnpm** — a DSH profile is an ordinary package directory, so the plugin is an ordinary dependency:
 
 ```bash
 cd ~/.dsh/profiles/web          # the profile you run; `web` is the desktop default
@@ -34,7 +40,9 @@ pnpm add dsh-opencli            # or: npm install dsh-opencli
 
 Profiles created by the desktop app carry a pnpm `.npmrc` (`node-linker=hoisted`), so prefer `pnpm add` there; plain `npm install dsh-opencli` also works in a profile that has no pnpm setup. Behind a mirror: append `--registry=https://registry.npmmirror.com`.
 
-Then list it in `dsh.profile.bundles` inside that profile's `package.json`, otherwise the harness never loads it:
+⚠️ **B and C only install the package** — neither touches `dsh.profile.bundles`, so the harness will not load it until you enable the bundle (the sidebar's **Plugins** page, which both installs and selects; or the `plugin_manager` tool when your preset enables it). Route A does that step for you. Also keep the pnpm doing the install in step with the profile's lockfile: a v9 lockfile needs pnpm 10+, and an older pnpm prints `Ignoring broken lockfile ... not compatible with current pnpm` and re-resolves the whole profile (the desktop app ships its own pnpm 11.8 for exactly this reason).
+
+To add it by hand instead, list it in `dsh.profile.bundles` inside that profile's `package.json`:
 
 ```json
 {
@@ -46,7 +54,7 @@ Then list it in `dsh.profile.bundles` inside that profile's `package.json`, othe
 }
 ```
 
-Its own `cordis.patch.yml` inserts the `dsh-opencli` tool row; you do not need to hand-write that. Either route finishes the same way: restart the session, or toggle the plugin entry `include:dsh-opencli` off and on.
+Its own `cordis.patch.yml` inserts the `dsh-opencli` tool row; you do not need to hand-write that. Every route finishes the same way: restart the session, or toggle the plugin entry `include:dsh-opencli` off and on.
 
 ## Tools
 
@@ -107,7 +115,7 @@ npm test        # schema conformance: success envelopes, failure envelopes, daem
 
 `dsh-opencli` 把本机 OpenCLI daemon 当常驻服务用，替掉「每条命令起一次 `opencli` CLI」的冷启动开销（1.4–1.8 s → 10–20 ms），提供 5 个工具：`oc_status` / `oc_exec` / `oc_navigate` / `oc_snapshot` / `oc_tabs`。
 
-- 安装：npm 上已发布（[dsh-opencli](https://www.npmjs.com/package/dsh-opencli)）。DSH 里跑 `plugin_manager action=install_bundle target=dsh-opencli`；或进 profile 目录 `pnpm add dsh-opencli`（`npm install` 亦可），再把 `dsh-opencli` 加进该 profile `package.json` 的 `dsh.profile.bundles`。装完重启会话，或把插件条目关一次再打开。
+- 安装：npm 上已发布（[dsh-opencli](https://www.npmjs.com/package/dsh-opencli)）。三条路：DSH 里 `plugin_manager action=install_bundle target=dsh-opencli`（或侧栏 Plugins 页，会把「装包 + 选中 bundle」一起做掉）；`npx @deepseek-ai/dsh plugin --profile web add dsh-opencli`；或进 profile 目录 `pnpm add dsh-opencli`。后两条只是装包，**还要去 Plugins 页启用该 bundle**，且 pnpm 版本要和 profile 的 lockfile 对齐（v9 → pnpm 10+）。装完重启会话，或把插件条目关一次再打开。
 - 排障先跑 `oc_status`；报 `daemon_unreachable` 就 `opencli daemon restart`。
 - 它操作的是你真实的、已登录的浏览器，不是无头沙箱；简单无登录态的测试仍走 Playwright 无头。
 - 改 `index.js` 不会热更，要 disable → enable 插件条目重新 import。
