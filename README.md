@@ -2,6 +2,10 @@
 
 Low-latency browser tools for DSH that drive the **local OpenCLI daemon directly** instead of spawning the `opencli` CLI once per command.
 
+[![npm version](https://img.shields.io/npm/v/dsh-opencli.svg)](https://www.npmjs.com/package/dsh-opencli)
+[![npm downloads](https://img.shields.io/npm/dm/dsh-opencli.svg)](https://www.npmjs.com/package/dsh-opencli)
+[![license](https://img.shields.io/npm/l/dsh-opencli.svg)](LICENSE)
+
 `opencli` pays a Node cold start on every call — it resolves 318 modules to send one request (~1.4–1.8 s per command; measured: `opencli list search` = 1071 ms). The daemon, once warm, answers the same request in **5–20 ms**. This plugin keeps that daemon as a resident service: it posts to `http://127.0.0.1:19825/command` with the `X-OpenCLI: 1` header and hands the result straight back to the agent.
 
 ```
@@ -11,13 +15,38 @@ plugin path : agent -> oc_exec -> fetch()     ->                daemon    ~10-20
 
 ## Install
 
+Published on npm: **[dsh-opencli](https://www.npmjs.com/package/dsh-opencli)** (registry: `https://registry.npmjs.org/dsh-opencli`, `npm view dsh-opencli version` for the current release).
+
+**A · Inside DSH** — let the plugin manager resolve it from the registry:
+
 ```bash
-# as a DSH bundle (writes the cordis patch row and mounts the tools)
 plugin_manager action=install_bundle target=dsh-opencli
 ```
 
 From a checkout instead: `plugin_manager action=install_bundle target=/absolute/path/to/dsh-opencli`.
-Then restart the session, or toggle the plugin entry `include:dsh-opencli` off and on.
+
+**B · With npm / pnpm** — a DSH profile is an ordinary package directory, so the plugin is an ordinary dependency:
+
+```bash
+cd ~/.dsh/profiles/web          # the profile you run; `web` is the desktop default
+pnpm add dsh-opencli            # or: npm install dsh-opencli
+```
+
+Profiles created by the desktop app carry a pnpm `.npmrc` (`node-linker=hoisted`), so prefer `pnpm add` there; plain `npm install dsh-opencli` also works in a profile that has no pnpm setup. Behind a mirror: append `--registry=https://registry.npmmirror.com`.
+
+Then list it in `dsh.profile.bundles` inside that profile's `package.json`, otherwise the harness never loads it:
+
+```json
+{
+  "dsh": {
+    "profile": {
+      "bundles": ["...", "dsh-opencli"]
+    }
+  }
+}
+```
+
+Its own `cordis.patch.yml` inserts the `dsh-opencli` tool row; you do not need to hand-write that. Either route finishes the same way: restart the session, or toggle the plugin entry `include:dsh-opencli` off and on.
 
 ## Tools
 
@@ -78,7 +107,7 @@ npm test        # schema conformance: success envelopes, failure envelopes, daem
 
 `dsh-opencli` 把本机 OpenCLI daemon 当常驻服务用，替掉「每条命令起一次 `opencli` CLI」的冷启动开销（1.4–1.8 s → 10–20 ms），提供 5 个工具：`oc_status` / `oc_exec` / `oc_navigate` / `oc_snapshot` / `oc_tabs`。
 
-- 安装：在 DSH 里 `plugin_manager action=install_bundle target=dsh-opencli`（已装过就重启会话或把插件条目关一次再打开）。
+- 安装：npm 上已发布（[dsh-opencli](https://www.npmjs.com/package/dsh-opencli)）。DSH 里跑 `plugin_manager action=install_bundle target=dsh-opencli`；或进 profile 目录 `pnpm add dsh-opencli`（`npm install` 亦可），再把 `dsh-opencli` 加进该 profile `package.json` 的 `dsh.profile.bundles`。装完重启会话，或把插件条目关一次再打开。
 - 排障先跑 `oc_status`；报 `daemon_unreachable` 就 `opencli daemon restart`。
 - 它操作的是你真实的、已登录的浏览器，不是无头沙箱；简单无登录态的测试仍走 Playwright 无头。
 - 改 `index.js` 不会热更，要 disable → enable 插件条目重新 import。
