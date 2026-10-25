@@ -61,7 +61,10 @@ opencli daemon restart   # daemon_unreachable 时的第一条命令
 1. `shellPath` 是否指向一个**能独立启动**的真二进制（`usr/bin/bash.exe`，不是同目录的几十 KB launcher）；
 2. 用同一台机器、同一 spawn 方式做对照：`node -e "spawnSync(bin, ['--noprofile','--norc','-i'], {input:'echo HI; exit\n'})"`——启不来的二进制换到终端里一样起不来；
 3. 如果用的是一份被补丁过的运行时（例如 dsh-ops 的 `bash-ipc/<identity>/`，为在受限令牌下绕过 MSYS 建信号管道而改写导入表），**先确认它自己能跑**。我们踩到的实例：该补丁运行时由 Node 直接 spawn、在 `danger-full-access` 下、连 `env -i` 都报 `*** fatal error - couldn't create signal pipe, Win32 error 5`（`exit 0xC0000142`），而同一时刻未打补丁的 payload 和系统 Git Bash 都能用 `-i` 正常起来——症状和「后端逻辑坏了」一模一样，但真凶是那个 shellPath。
-4. 改完 `shellPath` 必须**重启宿主**：后端在挂载时读这个值，不重启不生效。
+4. 结论与修法：把 `terminal-controller.config.shell.path` 与 `optional-terminal-bash.config.shellPath` 都指向**系统 Git Bash 的真二进制**（`C:/Program Files/Git/bin/bash.exe`，带空格的路径在 YAML 里加引号；同目录的 `usr/bin/bash.exe` 也可以），保留 `args: [-i]`。改完先跑一遍 YAML 解析确认没改坏，再新建一个终端会话验证；**这个 build 不需要重启宿主**——`terminal_open` 新建会话时就吃到了新路径，`echo $BASH_VERSION` 打出 `5.2.37(1)-release`、`MSYSTEM=MINGW64`、`exit` 干净退出 0。只有宿主把配置缓存住了才需要重启。
+5. 改这种文件前先备份到仓库之外（例如 `~/.dsh/backup/`），别把 profile 的 `.bak` 留在仓库里被误提交。
+
+实测口径（可用作基线）：持久 PTY 里 5 条外部命令 358 ms ≈ **72 ms/条**，与上面第 ① 条的 66–77 ms 一致；`/usr/bin/true` 这类最小进程也要付这个钱，因为贵的是 MSYS 的 fork 模拟，不是进程本身。
 
 顺带记一条：受限令牌下 MSYS 建不了信号管道（`error 5`），所以「沙箱内 + 持久 bash 终端」目前在 Windows 上不是默认成立，要么用一次性命令工具，要么让宿主以更高权限启动终端，要么真有可信的 IPC 补丁运行时。
 
