@@ -123,4 +123,26 @@ if (await daemonUp(closedPort)) {
 }
 
 console.log(`\nschema problems: ${problems}`);
+
+// Argument guards: the model's arguments reach `execute` verbatim, so the shapes the
+// schemas cannot express (a disallowed URL scheme, a close without a target, an
+// out-of-range limit) must be rejected inside the tool.
+const guards = [
+  ['oc_navigate', { url: 'file:///etc/passwd' }, /http\(s\)/],
+  ['oc_tabs', { op: 'close' }, /index|page/],
+  ['oc_snapshot', { limit: 9999 }, /400/],
+];
+for (const [name, args, pattern] of guards) {
+  try {
+    await tools.get(name).execute(args);
+    console.log(`GUARD MISSING: ${name} ${JSON.stringify(args)} was accepted`);
+    problems += 1;
+  } catch (error) {
+    const rejected = pattern.test(String(error?.message ?? error));
+    console.log(`${rejected ? 'guard ok' : 'GUARD MESSAGE'} ${name} ${JSON.stringify(args)} -> ${error?.message ?? error}`);
+    if (!rejected) problems += 1;
+  }
+}
+
+console.log(`\ntotal problems: ${problems}`);
 process.exitCode = problems === 0 ? 0 : 1;
