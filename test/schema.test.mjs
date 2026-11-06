@@ -104,6 +104,16 @@ if (await daemonUp(DAEMON_PORT)) {
   problems += await check(tools, 'oc_exec', { code: 'window.__nope__.x' });
   problems += await check(tools, 'oc_exec', { codes: ['1 + 1'], page: 'no_such_page_xyz' });
   problems += await check(tools, 'oc_tabs', { op: 'select', page: 'no_such_page_xyz' });
+  // The daemon-backed browser actions added after the first five tools.
+  problems += await check(tools, 'oc_screenshot', { format: 'png' });
+  problems += await check(tools, 'oc_frames', {});
+  problems += await check(tools, 'oc_network', { op: 'read' });
+  problems += await check(tools, 'oc_cdp', { method: 'DOM.getDocument' });
+  problems += await check(tools, 'oc_chrome', { op: 'describe' });
+  problems += await check(tools, 'oc_input', { text: 'x' });
+  problems += await check(tools, 'oc_close', { op: 'window' });
+  // Failure envelopes for the new tools travel through the same schemas.
+  problems += await check(tools, 'oc_upload', { files: ['/tmp/x'], selector: 'input[type=file]' });
 } else {
   console.log(`\nNo OpenCLI daemon on 127.0.0.1:${DAEMON_PORT} — live checks skipped.`);
 }
@@ -131,6 +141,11 @@ const guards = [
   ['oc_navigate', { url: 'file:///etc/passwd' }, /http\(s\)/],
   ['oc_tabs', { op: 'close' }, /index|page/],
   ['oc_snapshot', { limit: 9999 }, /400/],
+  ['oc_cookies', {}, /domain|url/],
+  ['oc_upload', { files: [], selector: 'x' }, /files/],
+  ['oc_upload', { files: ['/tmp/x'] }, /selector/],
+  ['oc_chrome', { op: 'call' }, /method/],
+  ['oc_network', { op: 'nope' }, /start\|read/],
 ];
 for (const [name, args, pattern] of guards) {
   try {

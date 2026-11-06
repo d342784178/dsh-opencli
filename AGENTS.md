@@ -25,7 +25,7 @@ CLI 路径    : agent -> shell -> node opencli -> (解析 318 个模块) -> daem
 | `test/schema.test.mjs` | schema 一致性测试，`npm test` |
 | `icon.svg`, `package.json` | 打包用；`package.json` 的 `files` 白名单决定发布内容 |
 
-工具面固定 5 个：`oc_status` / `oc_exec` / `oc_navigate` / `oc_snapshot` / `oc_tabs`，默认 port `19825`、session `dsh`、`timeoutMs` `30000`（钳在 2000–120000）。
+工具面固定 15 个：基础 5 个（`oc_status` / `oc_exec` / `oc_navigate` / `oc_snapshot` / `oc_tabs`）+ 浏览器动作 10 个（`oc_screenshot` / `oc_cookies` / `oc_network` / `oc_upload` / `oc_input` / `oc_frames` / `oc_cdp` / `oc_chrome` / `oc_close` / `oc_download`），默认 port `19825`、session `dsh`、`timeoutMs` `30000`（钳在 2000–120000）。
 
 ## 3. 常用命令
 

@@ -1,7 +1,7 @@
 {
   "name": "dsh-opencli",
-  "version": "0.1.0",
-  "description": "Low-latency OpenCLI browser tools for DSH: drives the local OpenCLI daemon directly instead of paying a CLI cold start on every command.",
+  "version": "0.2.0",
+  "description": "Low-latency OpenCLI browser tools for DSH: 15 tools that drive the local OpenCLI daemon directly instead of paying a CLI cold start on every command.",
   "type": "module",
   "main": "index.js",
   "scripts": {
